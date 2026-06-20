@@ -2,71 +2,40 @@ from selenium.webdriver.common.by import By
 from pages.base_page import BasePage
 
 
-class PatientRecordsPage(BasePage):
-    PAGE_TITLE = (By.CSS_SELECTOR, "h1.page-title")
-    SEARCH_BOX = (By.ID, "patient-search")
-    SEARCH_BTN = (By.ID, "search-btn")
+class TablesPage(BasePage):
+    URL = "https://the-internet.herokuapp.com/tables"
 
-    PATIENT_TABLE = (By.CSS_SELECTOR, "table.patient-table tbody tr")
-    PATIENT_NAME = (By.CSS_SELECTOR, "td.patient-name")
-    PATIENT_ID = (By.CSS_SELECTOR, "td.patient-id")
-    PATIENT_DOB = (By.CSS_SELECTOR, "td.patient-dob")
+    _table1_rows = (By.CSS_SELECTOR, "#table1 tbody tr")
+    _table2_rows = (By.CSS_SELECTOR, "#table2 tbody tr")
+    _table1_headers = (By.CSS_SELECTOR, "#table1 thead th")
 
-    RECORD详情BTN = (By.CSS_SELECTOR, ".view-record-btn")
-    RECORD详情SECTION = (By.CSS_SELECTOR, ".patient-detail-section")
-
-    VITALS_TABLE = (By.CSS_SELECTOR, ".vitals-table")
-    MEDICATION_LIST = (By.CSS_SELECTOR, ".medication-item")
-    ALLERGY_LIST = (By.CSS_SELECTOR, ".allergy-item")
-    VISIT_HISTORY = (By.CSS_SELECTOR, ".visit-entry")
-
-    def search_patient(self, name):
-        self.type_text(*self.SEARCH_BOX, name)
-        self.click(*self.SEARCH_BTN)
+    def open(self):
+        self.driver.get(self.URL)
         return self
 
-    def get_patient_count(self):
-        try:
-            return len(self.find_all(*self.PATIENT_TABLE))
-        except:
-            return 0
+    def get_table1_row_count(self):
+        return len(self.find_all(*self._table1_rows))
 
-    def get_patient_names(self):
-        elements = self.find_all(*self.PATIENT_NAME)
-        return [el.text for el in elements]
+    def get_table2_row_count(self):
+        return len(self.find_all(*self._table2_rows))
 
-    def click_view_record(self, index=0):
-        btns = self.find_all(*self.RECORD详情BTN)
-        btns[index].click()
-        return self
+    def get_headers(self):
+        headers = self.find_all(*self._table1_headers)
+        return [h.text for h in headers]
 
-    def is_record_detail_visible(self):
-        return self.is_visible(*self.RECORD详情SECTION)
+    def get_row_data(self, row_index):
+        rows = self.find_all(*self._table1_rows)
+        cells = rows[row_index].find_elements(By.TAG_NAME, "td")
+        return [cell.text for cell in cells]
 
-    def get_vitals(self):
-        table = self.find(*self.VITALS_TABLE)
-        rows = table.find_elements(By.TAG_NAME, "tr")
-        vitals = {}
-        for row in rows:
-            cols = row.find_elements(By.TAG_NAME, "td")
-            if len(cols) >= 2:
-                vitals[cols[0].text.strip()] = cols[1].text.strip()
-        return vitals
+    def get_all_last_names(self):
+        rows = self.find_all(*self._table1_rows)
+        return [row.find_elements(By.TAG_NAME, "td")[0].text for row in rows]
 
-    def get_medication_count(self):
-        try:
-            return len(self.find_all(*self.MEDICATION_LIST))
-        except:
-            return 0
+    def get_all_emails(self):
+        rows = self.find_all(*self._table1_rows)
+        return [row.find_elements(By.TAG_NAME, "td")[2].text for row in rows]
 
-    def get_allergy_count(self):
-        try:
-            return len(self.find_all(*self.ALLERGY_LIST))
-        except:
-            return 0
-
-    def get_visit_count(self):
-        try:
-            return len(self.find_all(*self.VISIT_HISTORY))
-        except:
-            return 0
+    def get_due_amounts(self):
+        rows = self.find_all(*self._table1_rows)
+        return [row.find_elements(By.TAG_NAME, "td")[3].text for row in rows]

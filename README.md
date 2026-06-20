@@ -1,20 +1,21 @@
 # Task 4 — Healthcare Website Automation Testing
 
-Automated test suite for healthcare websites using Python + Selenium + pytest. Covers appointment scheduling, patient records, role-based access, and security/privacy validations.
+Automated test suite for healthcare-style web interactions using Python + Selenium + pytest. Covers authentication, form interactions, table data, and security validations against real, publicly available demo sites.
 
 ## What's Tested
 
-- **Appointment Scheduling** — Book, view, cancel appointments with various providers
-- **Patient Records** — View patient info, validate data fields, search patients
-- **Role-Based Access** — Doctor vs patient vs admin permissions
-- **Security & Privacy** — HIPAA-style checks, session timeout, secure navigation, data masking
-- **Login & Authentication** — Valid/invalid login, password policies, account lockout
+- **Login & Authentication** — Valid/invalid login, flash messages, form validation
+- **Form Interactions** — Dropdown selections, numeric inputs, form validation
+- **Patient Records (Tables)** — Table display, row counts, data extraction, headers
+- **Security & Privacy** — HTTPS validation, no exposed data, secure cookies
 
 ## Target Sites
 
-- [Patient Portal Demo](https://demo.patientportal.com) (mock)
-- [ACA Healthcare Demo](https://www.carehealthusa.com) (demo forms)
-- Custom mock endpoints for security testing
+- [The Internet - Login](https://the-internet.herokuapp.com/login) — Login form with tomsmith / SuperSecretPassword!
+- [The Internet - Dropdown](https://the-internet.herokuapp.com/dropdown) — Dropdown selection tests
+- [The Internet - Inputs](https://the-internet.herokuapp.com/inputs) — Numeric input tests
+- [The Internet - Tables](https://the-internet.herokuapp.com/tables) — Table data display tests
+- [Google](https://www.google.com) — HTTPS and security validation
 
 ## Setup
 
@@ -43,7 +44,6 @@ pytest --html=reports/report.html --self-contained-html
 
 - Python 3 + Selenium 4 + pytest
 - Page Object Model design pattern
-- Pillow for screenshot-based validation
 - WebDriver Manager for automatic browser driver management
 
 ## Intern

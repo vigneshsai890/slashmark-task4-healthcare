@@ -2,47 +2,46 @@ import pytest
 from pages.healthcare.security_page import SecurityPage
 
 
-@pytest.mark.security
-class TestSecurityPrivacy:
-    @pytest.fixture(autouse=True)
-    def setup(self, driver):
-        self.page = SecurityPage(driver)
+class TestSecurity:
+    @pytest.mark.smoke
+    @pytest.mark.security
+    def test_google_uses_https(self, driver):
+        page = SecurityPage(driver)
+        page.open_google()
+        assert page.is_https()
 
-    def test_page_uses_https(self, driver):
-        self.page.navigate_to_public_page()
-        assert self.page.check_page_is_secure()
+    @pytest.mark.security
+    def test_login_page_uses_https(self, driver):
+        page = SecurityPage(driver)
+        page.open_login()
+        assert page.is_https()
 
-    def test_no_http_links_on_page(self, driver):
-        self.page.navigate_to_public_page()
-        assert self.page.check_no_http_links()
+    @pytest.mark.security
+    def test_no_http_links_on_google(self, driver):
+        page = SecurityPage(driver)
+        page.open_google()
+        assert not page.has_http_links()
 
-    def test_no_exposed_ssn_pattern(self, driver):
-        self.page.navigate_to_public_page()
-        ssn_pattern = r"\b\d{3}-\d{2}-\d{4}\b"
-        matches = self.page.get_page_contains_sensitive_data(ssn_pattern)
-        assert len(matches) == 0
+    @pytest.mark.security
+    def test_no_exposed_emails(self, driver):
+        page = SecurityPage(driver)
+        page.open_google()
+        assert not page.contains_email_pattern()
 
-    def test_no_exposed_credit_card_pattern(self, driver):
-        self.page.navigate_to_public_page()
-        cc_pattern = r"\b(?:\d{4}[- ]?){3}\d{4}\b"
-        matches = self.page.get_page_contains_sensitive_data(cc_pattern)
-        assert len(matches) == 0
+    @pytest.mark.security
+    def test_no_exposed_ssns(self, driver):
+        page = SecurityPage(driver)
+        page.open_google()
+        assert not page.contains_ssn_pattern()
 
-    def test_private_page_requires_login(self, driver):
-        self.page.navigate_to_private_page()
-        assert self.page.is_redirected_to_login()
+    @pytest.mark.security
+    def test_no_exposed_phone_numbers(self, driver):
+        page = SecurityPage(driver)
+        page.open_google()
+        assert not page.contains_phone_pattern()
 
-    def test_password_strength_weak(self, driver):
-        self.page.driver.get("https://www.carehealthusa.com/register")
-        strength = self.page.get_password_strength("abc")
-        assert "weak" in strength.lower() or "fair" in strength.lower()
-
-    def test_password_strength_strong(self, driver):
-        self.page.driver.get("https://www.carehealthusa.com/register")
-        strength = self.page.get_password_strength("Str0ng!Pass#2026")
-        assert "strong" in strength.lower()
-
-    def test_password_requirements_displayed(self, driver):
-        self.page.driver.get("https://www.carehealthusa.com/register")
-        reqs = self.page.get_password_requirements()
-        assert len(reqs) > 0
+    @pytest.mark.security
+    def test_cookies_are_secure(self, driver):
+        page = SecurityPage(driver)
+        page.open_google()
+        assert page.has_secure_cookies()

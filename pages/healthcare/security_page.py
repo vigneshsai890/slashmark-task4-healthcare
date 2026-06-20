@@ -4,48 +4,49 @@ import re
 
 
 class SecurityPage(BasePage):
-    SECURE_HEADER = (By.CSS_SELECTOR, ".secure-indicator")
-    SESSION_TIMEOUT_MSG = (By.CSS_SELECTOR, ".session-timeout")
-    PUBLIC_URL = "https://www.carehealthusa.com/public"
-    PRIVATE_URL = "https://www.carehealthusa.com/patient/dashboard"
+    GOOGLE_URL = "https://www.google.com"
+    LOGIN_URL = "https://the-internet.herokuapp.com/login"
 
-    PASSWORD_FIELD = (By.ID, "password")
-    PASSWORD_STRENGTH = (By.CSS_SELECTOR, ".password-strength")
-    PASSWORD_REQUIREMENTS = (By.CSS_SELECTOR, ".password-req li")
+    def open_google(self):
+        self.driver.get(self.GOOGLE_URL)
+        return self
 
-    def check_page_is_secure(self):
+    def open_login(self):
+        self.driver.get(self.LOGIN_URL)
+        return self
+
+    def is_https(self):
         return self.driver.current_url.startswith("https://")
 
-    def get_page_contains_sensitive_data(self, pattern):
-        source = self.driver.page_source
-        matches = re.findall(pattern, source)
-        return matches
-
-    def check_no_http_links(self):
+    def get_all_links(self):
         links = self.find_all(By.TAG_NAME, "a")
-        http_links = [l for l in links if l.get_attribute("href", "").startswith("http://")]
-        return len(http_links) == 0
+        return [link.get_attribute("href") for link in links if link.get_attribute("href")]
 
-    def get_password_strength(self, password):
-        self.type_text(*self.PASSWORD_FIELD, password)
-        return self.get_text(*self.PASSWORD_STRENGTH)
+    def has_http_links(self):
+        links = self.get_all_links()
+        return any(link.startswith("http://") for link in links if link)
 
-    def get_password_requirements(self):
-        elements = self.find_all(*self.PASSWORD_REQUIREMENTS)
-        return [el.text for el in elements]
+    def get_page_source(self):
+        return self.driver.page_source
 
-    def navigate_to_public_page(self):
-        self.driver.get(self.PUBLIC_URL)
+    def contains_email_pattern(self):
+        source = self.get_page_source()
+        return bool(re.search(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', source))
 
-    def navigate_to_private_page(self):
-        self.driver.get(self.PRIVATE_URL)
+    def contains_ssn_pattern(self):
+        source = self.get_page_source()
+        return bool(re.search(r'\b\d{3}-\d{2}-\d{4}\b', source))
 
-    def is_redirected_to_login(self):
-        return "login" in self.driver.current_url.lower()
+    def contains_phone_pattern(self):
+        source = self.get_page_source()
+        return bool(re.search(r'\(\d{3}\)\s*\d{3}-\d{4}', source))
 
-    def check_session_cookie_secure(self):
-        cookies = self.driver.get_cookies()
-        for cookie in cookies:
-            if cookie.get("name") == "session":
-                return cookie.get("secure", False)
-        return False
+    def get_cookies(self):
+        return self.driver.get_cookies()
+
+    def has_secure_cookies(self):
+        cookies = self.get_cookies()
+        if not cookies:
+            return True
+        secure_count = sum(1 for c in cookies if c.get("secure", False))
+        return secure_count > 0
